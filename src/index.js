@@ -1,22 +1,17 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import { default as withFetch } from "./withFetch";
+import { default as withMutation } from "./withMutation";
+import { default as withPolling } from "./withPolling";
+import { default as withProps } from "./withProps";
+import { default as ConfigProvider } from "./ConfigProvider";
+import { default as withConfig } from "./withConfig";
+import { default as compose } from "./compose";
 
-import styles from './styles.css'
-
-export default class ExampleComponent extends Component {
-  static propTypes = {
-    text: PropTypes.string
-  }
-
-  render() {
-    const {
-      text
-    } = this.props
-
-    return (
-      <div className={styles.test}>
-        Example Component: {text}
-      </div>
-    )
-  }
-}
+export {
+  withFetch,
+  withMutation,
+  ConfigProvider,
+  withConfig,
+  withPolling,
+  withProps,
+  compose
+};
