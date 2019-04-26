@@ -5,7 +5,7 @@ const withPolling = config => WrappedComponent => {
   return class extends React.Component {
     displayName = "withPolling";
     static propTypes = {
-      config: PropTypes.object.isRequired
+      config: PropTypes.object
     };
     state = {
       timeoutPoll: 0

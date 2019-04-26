@@ -5,6 +5,7 @@ import { default as withProps } from "./withProps";
 import { default as ConfigProvider } from "./ConfigProvider";
 import { default as withConfig } from "./withConfig";
 import { default as compose } from "./compose";
+import { default as HandleFallback } from "./HandleFallback";
 
 export {
   withFetch,
@@ -13,5 +14,6 @@ export {
   withConfig,
   withPolling,
   withProps,
-  compose
+  compose,
+  HandleFallback
 };

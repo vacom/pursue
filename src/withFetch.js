@@ -1,18 +1,16 @@
 import React from "react";
 import PropTypes from "prop-types";
-//Fetch
-import axios from "axios";
 
 const withFetch = config => WrappedComponent => {
   return class extends React.Component {
     displayName = "withFetch";
     static propTypes = {
-      config: PropTypes.object.isRequired
+      config: PropTypes.object
     };
     state = {
-      data: [],
+      response: [],
       loading: true,
-      network: {}
+      error: false
     };
     componentDidMount() {
       const { hasOptions } = config(this.props);
@@ -22,93 +20,82 @@ const withFetch = config => WrappedComponent => {
         });
         return;
       }
-      this._onFetch();
+      this.onFetch();
     }
-    _onFetch = async () => {
-      //{options: { name = "data", endpoint, ...rest }}
+    componentDidCatch(error) {
+      this.setState({
+        response: { error },
+        loading: false,
+        error: true
+      });
+    }
+    delay = promiseToDelay =>
+      new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          try {
+            const data = await promiseToDelay();
+            resolve(data);
+          } catch (err) {
+            reject(err);
+          }
+        }, 1000);
+      });
+    onFetch = async () => {
       try {
-        //Gets the params data
         const { options } = config(this.props);
-        const { endpoint } = options;
-        //gets the default endpoint from the props
-        let url = endpoint;
-        const { api } = this.props.config;
-        //Calls the server from the endpoint
-        //const res = await axios.get(`${api.url}${url}`);
-        const res = await axios({
-          method: "get",
-          url: `${api.url}${url}`,
-          headers: { ...api.headers }
-        });
-        //Filters the data
-        const { data, status, statusText } = res;
-        const network = { status, statusText };
-        //Checks for errors on the network and user auth
-        this._onHandleErrors(status);
-        //Updates the state and loads the component
+
+        const fetchConfig = {
+          method: "GET",
+          headers: new Headers({
+            ...options.headers
+          })
+        };
+
+        const res = options.hasDelay
+          ? await this.delay(() => fetch(options.endpoint, fetchConfig))
+          : await fetch(options.endpoint, fetchConfig);
+
+        const data = await res.json();
+
         this.setState({
-          data,
-          network,
-          loading: false
+          response: data,
+          loading: false,
+          error: false
         });
       } catch (error) {
-        this._onHandleErrors(401);
+        this.setState({
+          response: { error },
+          loading: false,
+          error: true
+        });
       }
     };
-    _onLocalFetch = async endpoint => {
+
+    onLocalFetch = async (endpoint, config) => {
       try {
-        const { api } = this.props.config;
-        //Calls the server from the endpoint
-        //const res = await axios.get(`${api.url}${endpoint}`);
-        const res = await axios({
-          method: "get",
-          url: `${api.url}${endpoint}`,
-          headers: { ...api.headers }
-        });
-
-        //Filters the data
-        const { data, status, statusText } = res;
-        const network = { status, statusText };
-        //Checks for errors on the network and user auth
-        this._onHandleErrors(status);
-        //Updates the state and loads the component
-        return { data, network };
+        const res = await fetch(endpoint, config);
+        return res;
       } catch (error) {
-        this._onHandleErrors(error.response.status);
+        throw error;
       }
     };
-    _onHandleErrors = (status = 200) => {
-      const { api, mode } = this.props.config;
-      //redirect the page if something went wrong
-      if (status === 401) {
-        if (mode === "dev") {
-          document.location.replace(api.loginUrl);
-        } else {
-          window.location.reload(true);
-        }
-        return;
-      }
 
-      if (status === 500) {
-        //@TODO where to go from here?
-        console.error("Internal Critical Error!");
-        return;
-      }
-    };
     render() {
-      const { data, ...state } = this.state;
+      const { response, loading, error } = this.state;
       const { options, ...rest } = config(this.props);
       let dynamicProps = [];
-
+      const actions = loading ? {} : { refetch: this.onFetch, error };
       if (rest.hasOptions) {
-        dynamicProps[options.name || "data"] = data;
-        dynamicProps["refetch"] = this._onFetch;
+        dynamicProps[options.name || "query"] = {
+          loading,
+          ...response,
+          ...actions
+        };
       }
-
       if (rest.hasLocalFetch) {
-        dynamicProps["localFetch"] = this._onLocalFetch;
+        dynamicProps["localFetch"] = this.onLocalFetch;
       }
-      return <WrappedComponent {...dynamicProps} {...state} {...this.props} />;
+      return <WrappedComponent {...dynamicProps} {...this.props} />;
     }
   };
 };
