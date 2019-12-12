@@ -2,7 +2,7 @@
 
 Inspired by the definitions of GraphQL, such as Mutation, this library offers a simple HTTP client based on HOCs. Provides a way to reduce boilerplate when working with request notably with an API in REST. Simple and easy to integrate with just one configuration, you can have almost the same capabilities as a "GraphQL API", for example: injection of the endpoint data in the props, loading state and finally refetch function. This library has two main HOCs, withFetch and withMutation and others as utility form. Below is explained in more detail.
 
-![Pursue](http://i65.tinypic.com/2u6idja.jpg)
+![Pursue](https://i.imgur.com/ERhNl4O.jpg)
 
 ## installation
 
